@@ -78,14 +78,9 @@ class _GamePageState extends State<GamePage> {
   }
 }
 
-class GamePad extends StatefulWidget {
+class GamePad extends StatelessWidget {
   const GamePad({Key? key}) : super(key: key);
 
-  @override
-  State<GamePad> createState() => _GamePadState();
-}
-
-class _GamePadState extends State<GamePad> {
   @override
   Widget build(BuildContext context) {
     logger.d("====GamePad--build");
