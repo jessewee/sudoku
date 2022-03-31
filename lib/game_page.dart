@@ -84,15 +84,18 @@ class GamePad extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     logger.d("====GamePad--build");
-    return Column(
-      children: const [
-        // 选项
-        Selections(),
-        // 分割线
-        Divider(),
-        // 格子
-        GridFrame(),
-      ],
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        children: const [
+          // 选项
+          Selections(),
+          // 分割线
+          Divider(height: 20, color: Colors.black),
+          // 格子
+          GridFrame(),
+        ],
+      ),
     );
   }
 }
@@ -135,12 +138,17 @@ class _GridFrameState extends State<GridFrame> {
   Widget build(BuildContext context) {
     logger.d("====GridFrame--build");
     final rowCnt = context.select((MainVM vm) => vm.data.length);
-    return Container(
-      decoration: BoxDecoration(border: Border.all(width: 2)),
-      child: Column(
+    return Stack(
+      children: [
+        // 网格线
+        const Positioned.fill(child: GridLines()),
+        // 格子
+        Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [for (var r = 0; r < rowCnt; r++) GridRow(rowIdx: r)]),
+          children: [for (var r = 0; r < rowCnt; r++) GridRow(rowIdx: r)],
+        ),
+      ],
     );
   }
 }
@@ -194,11 +202,14 @@ class _GridCellState extends State<GridCell> {
     });
     Widget cell = Container(
       alignment: Alignment.center,
-      decoration: BoxDecoration(
-        border: Border.all(width: 0.5),
-        color: matched ? Colors.black45 : Colors.transparent,
+      color: matched ? Colors.black12 : Colors.transparent,
+      child: Text(
+        cellData.number.toString(),
+        style: TextStyle(
+          fontWeight: cellData.canFill ? FontWeight.bold : FontWeight.normal,
+          color: cellData.canFill ? Colors.black : Colors.grey,
+        ),
       ),
-      child: Text(cellData.number.toString()),
     );
     if (cellData.canFill) {
       cell = GestureDetector(
@@ -213,5 +224,52 @@ class _GridCellState extends State<GridCell> {
       ),
     );
     return cell;
+  }
+}
+
+/// 网格线
+class GridLines extends StatelessWidget {
+  const GridLines({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(painter: _GridLinesPainter());
+  }
+}
+
+class _GridLinesPainter extends CustomPainter {
+  final Paint _paint;
+  _GridLinesPainter({Listenable? repaint})
+      : _paint = Paint()..color = Colors.black,
+        super(repaint: repaint);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    _paint.strokeWidth = 3;
+    _paint.style = PaintingStyle.stroke;
+    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), _paint);
+    final wSpace = size.width / 9;
+    for (var i = 1; i < 9; i++) {
+      _paint.strokeWidth = i % 3 == 0 ? 3 : 1;
+      canvas.drawLine(
+        Offset(i * wSpace, 0),
+        Offset(i * wSpace, size.height),
+        _paint,
+      );
+    }
+    final hSpace = size.height / 9;
+    for (var i = 1; i < 9; i++) {
+      _paint.strokeWidth = i % 3 == 0 ? 3 : 1;
+      canvas.drawLine(
+        Offset(0, i * hSpace),
+        Offset(size.width, i * hSpace),
+        _paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return false;
   }
 }
